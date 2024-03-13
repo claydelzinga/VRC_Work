@@ -1,0 +1,528 @@
+#Summary of statistics for BMP Study
+#Was needed to find the number of each USDA texture variable when grouped into categories 
+#Then needed to label each summary with poor, declining, optimal and sub optimal which varied with each variable 
+
+library(readxl)
+library(dplyr)
+library(tidyverse)
+For_Filtering_Data_BMP_Case_Study_GTLRC_Soil_Health_Database_1_ <- read_excel(
+  "C:/Users/Clay.Elzinga/Desktop/For Filtering Data BMP_Case_Study_GTLRC Soil Health Database (1).xlsx", 
+                                                                              skip = 1)
+View(For_Filtering_Data_BMP_Case_Study_GTLRC_Soil_Health_Database_1_)
+
+#Just  the collumns that are needed 
+filtering_data <- For_Filtering_Data_BMP_Case_Study_GTLRC_Soil_Health_Database_1_[c(4,17,20,26,27,28,32,33,30)]
+filtering_data
+
+#Not sure why but some of the rows were not numeric 
+filtering_data$OM <- as.numeric(as.character(filtering_data$OM))
+filtering_data$POM <- as.numeric(as.character(filtering_data$POM))
+filtering_data$EC <- as.numeric(as.character(filtering_data$EC))
+filtering_data$pH <- as.numeric(as.character(filtering_data$pH))
+filtering_data$soil_respiration <- as.numeric(as.character(filtering_data$soil_respiration))
+filtering_data$ksat_10 <- as.numeric(as.character(filtering_data$ksat_10))
+filtering_data$bulk_density <- as.numeric(as.character(filtering_data$bulk_density))
+
+
+#some renaming as a well
+filtering_data <- rename(filtering_data, 
+                         bulk_density = 3,
+                         ksat_10 = 4)
+
+#Filtering for just Years
+filtered_data_2022 <- filter(filtering_data, sample_year == "2022" )
+filtered_data_2023 <- filter(filtering_data, sample_year == "2023" )
+str(filtered_data_2022)
+
+
+###############################################################################
+#Alright all of the values below will be 2022 until stated otherwise ##########
+#The data will also be for coarse soil until stated otherwise #################
+# Filter the USDA_texture column for specific values##########################
+filtered_data_2022_Coarse <- filtered_data_2022 %>%
+  filter(USDA_texture %in% c("Sandy Loam", "Sand", "Loamy Sand"))
+summary_table <- filtered_data_2022_Coarse %>%
+  mutate(OM = cut(OM, breaks = c(-Inf, 2, 3, 4, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                           include.lowest = TRUE)) %>%
+  group_by(OM) %>%
+  summarise(count = n())
+View(filtered_data_2022_Coarse)
+# Summarize the OM data column into four categories
+summary_table_coarse_OM22 <- filtered_data_2022_Coarse %>%
+  mutate(OM = cut(OM, breaks = c(-Inf, 2, 3, 4, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                           include.lowest = TRUE)) %>%
+  group_by(OM) %>%
+  summarise(count = n())
+#OM for Coarse 2022
+print(summary_table_coarse_OM22)
+
+
+#For POM
+# Summarize the POM data column into four categories
+summary_table_coarse_POM22 <- filtered_data_2022_Coarse %>%
+  mutate(POM = cut(POM, breaks = c(-Inf, 1, 1.4, 2, Inf),
+                   labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                   include.lowest = TRUE)) %>%
+  group_by(POM) %>%
+  summarise(count = n())
+print(summary_table_coarse_POM22)
+
+
+#This will be on the pH of 2022
+# Summarize the pH data column into four categories
+summary_table_coarse_pH22 <- filtered_data_2022_Coarse %>%
+  mutate(pH_category = cut(pH, breaks = c(-Inf, 5, 5.4, 5.9, 7, 7.5, 8, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor" ),
+                           include.lowest = TRUE)) %>%
+  group_by(pH_category) %>%
+  summarise(count = n())
+print(summary_table_coarse_pH22)
+
+#This is now for the EC data 
+# Summarize the EC data column into seven categories
+summary_table_coarse_EC22 <- filtered_data_2022_Coarse %>%
+  mutate(EC_category = cut(EC, breaks = c(-Inf, 50, 99, 290, 1000, 1500, 2000, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                           include.lowest = TRUE)) %>%
+  group_by(EC_category) %>%
+  summarise(count = n())
+print(summary_table_coarse_EC22)
+
+#Now this is for saturdate hydaurlic conductivity 
+#KSTAT 10 Values were used in this calculation
+# Summarize the ksat_10 data column into seven categories
+summary_table_coarse_ksat_1022 <- filtered_data_2022_Coarse %>%
+  mutate(ksat_10 = cut(ksat_10, breaks = c(-Inf, 2.4, 15, 36, 72, 108, 144, Inf),
+                                labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                                include.lowest = TRUE)) %>%
+  group_by(ksat_10) %>%
+  summarise(count = n())
+print(summary_table_coarse_ksat_1022)
+
+#Now this is for bulk density 
+# Summarize the bulk_density data column into four categories
+summary_table_coarse_bulk_density22 <- filtered_data_2022_Coarse %>%
+  mutate(bulk_density_category = cut(bulk_density, breaks = c(-Inf, 1.4, 1.5, 1.6, Inf),
+                                     labels = c("Optimal", "Sub optimal", "Declining", "Poor"),
+                                     include.lowest = TRUE)) %>%
+  group_by(bulk_density_category) %>%
+  summarise(count = n())
+print((summary_table_coarse_bulk_density22))
+
+#Now this is for soil repsiration 
+# Summarize the soil_respiration data column into four categories
+summary_table_coarse_soil_respiration22 <- filtered_data_2022_Coarse %>%
+  mutate(soil_respiration_category = cut(soil_respiration, breaks = c(-Inf, 0.5, 0.74, 1, Inf),
+                                         labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                                         include.lowest = TRUE)) %>%
+  group_by(soil_respiration_category) %>%
+  summarise(count = n())
+print(summary_table_coarse_soil_respiration22)
+
+
+##############################################################################
+#From here until otherwise noted we are dealing with Medium texture data #####
+#this data is still from 2022#################################################
+
+filtered_data_2022_Medium <- filtered_data_2022 %>%
+  filter(USDA_texture %in% c("Sandy Clay Loam", "Loam, Silt Loam", "Silt"))
+View(filtered_data_2022_Medium)
+#Medium OM 2022
+summary_table_medium_OM22 <- filtered_data_2022_Medium %>%
+  mutate(OM = cut(OM, breaks = c(-Inf, 2, 3, 4, Inf),
+                  labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                  include.lowest = TRUE)) %>%
+  group_by(OM) %>%
+  summarise(count = n())
+print(summary_table_medium_OM22)
+#Medium POM 2022
+summary_table_medium_POM22 <- filtered_data_2022_Medium %>%
+  mutate(POM = cut(POM, breaks = c(-Inf, 1, 1.4, 2, Inf),
+                   labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                   include.lowest = TRUE)) %>%
+  group_by(POM) %>%
+  summarise(count = n())
+print(summary_table_medium_POM22)
+#Medium pH 2022
+summary_table_medium_pH22 <- filtered_data_2022_Medium %>%
+  mutate(pH_category = cut(pH, breaks = c(-Inf, 5, 5.4, 5.9, 7, 7.5, 8, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor" ),
+                           include.lowest = TRUE)) %>%
+  group_by(pH_category) %>%
+  summarise(count = n())
+print(summary_table_medium_pH22)
+#Medium EC 2022
+summary_table_medium_EC22 <- filtered_data_2022_Medium %>%
+  mutate(EC_category = cut(EC, breaks = c(-Inf, 50, 99, 290, 1000, 1500, 2000, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                           include.lowest = TRUE)) %>%
+  group_by(EC_category) %>%
+  summarise(count = n())
+print(summary_table_medium_EC22)
+#Medium ksat_10 2022
+summary_table_medium_ksat_1022 <- filtered_data_2022_Medium %>%
+  mutate(ksat_10 = cut(ksat_10, breaks = c(-Inf, 2.4, 15, 36, 72, 108, 144, Inf),
+                       labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                       include.lowest = TRUE)) %>%
+  group_by(ksat_10) %>%
+  summarise(count = n())
+print(summary_table_medium_ksat_1022)
+#Medium bulk density 2022
+summary_table_medium_bulk_density22 <- filtered_data_2022_Medium %>%
+  mutate(bulk_density_category = cut(bulk_density, breaks = c(-Inf, 1.4, 1.5, 1.6, Inf),
+                                     labels = c("Optimal", "Sub optimal", "Declining", "Poor"),
+                                     include.lowest = TRUE)) %>%
+  group_by(bulk_density_category) %>%
+  summarise(count = n())
+print((summary_table_medium_bulk_density22))
+#Medium soil respiration 2022
+summary_table_medium_soil_respiration22 <- filtered_data_2022_Medium %>%
+  mutate(soil_respiration_category = cut(soil_respiration, breaks = c(-Inf, 0.5, 0.74, 1, Inf),
+                                         labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                                         include.lowest = TRUE)) %>%
+  group_by(soil_respiration_category) %>%
+  summarise(count = n())
+print(summary_table_medium_soil_respiration22)
+
+################################################################################
+#From here o out we will be dealing with fine textured soil#####################
+#This data is still from 2022###################################################
+
+filtered_data_2022_fine <- filtered_data_2022 %>%
+  filter(USDA_texture %in% c("Sandy Clay", "Clay Loam", "Silty Clay Loam", "Clay", "Silty Clay"))
+View(filtered_data_2022_fine)
+#fine OM 2022
+summary_table_fine_OM22 <- filtered_data_2022_fine %>%
+  mutate(OM = cut(OM, breaks = c(-Inf, 2, 3, 4, Inf),
+                  labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                  include.lowest = TRUE)) %>%
+  group_by(OM) %>%
+  summarise(count = n())
+print(summary_table_fine_OM22)
+#fine POM 2022
+summary_table_fine_POM22 <- filtered_data_2022_fine %>%
+  mutate(POM = cut(POM, breaks = c(-Inf, 1, 1.4, 2, Inf),
+                   labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                   include.lowest = TRUE)) %>%
+  group_by(POM) %>%
+  summarise(count = n())
+print(summary_table_fine_POM22)
+#fine pH 2022
+summary_table_fine_pH22 <- filtered_data_2022_fine %>%
+  mutate(pH_category = cut(pH, breaks = c(-Inf, 5, 5.4, 5.9, 7, 7.5, 8, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor" ),
+                           include.lowest = TRUE)) %>%
+  group_by(pH_category) %>%
+  summarise(count = n())
+print(summary_table_fine_pH22)
+#fine EC 2022
+summary_table_fine_EC22 <- filtered_data_2022_fine %>%
+  mutate(EC_category = cut(EC, breaks = c(-Inf, 50, 99, 290, 1000, 1500, 2000, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                           include.lowest = TRUE)) %>%
+  group_by(EC_category) %>%
+  summarise(count = n())
+print(summary_table_fine_EC22)
+#fine ksat_10 2022
+summary_table_fine_ksat_1022 <- filtered_data_2022_fine %>%
+  mutate(ksat_10 = cut(ksat_10, breaks = c(-Inf, 2.4, 15, 36, 72, 108, 144, Inf),
+                       labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                       include.lowest = TRUE)) %>%
+  group_by(ksat_10) %>%
+  summarise(count = n())
+print(summary_table_fine_ksat_1022)
+#fine bulk density 2022
+summary_table_fine_bulk_density22 <- filtered_data_2022_fine %>%
+  mutate(bulk_density_category = cut(bulk_density, breaks = c(-Inf, 1.4, 1.5, 1.6, Inf),
+                                     labels = c("Optimal", "Sub optimal", "Declining", "Poor"),
+                                     include.lowest = TRUE)) %>%
+  group_by(bulk_density_category) %>%
+  summarise(count = n())
+print((summary_table_fine_bulk_density22))
+#fine soil respiration 2022
+summary_table_fine_soil_respiration22 <- filtered_data_2022_fine %>%
+  mutate(soil_respiration_category = cut(soil_respiration, breaks = c(-Inf, 0.5, 0.74, 1, Inf),
+                                         labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                                         include.lowest = TRUE)) %>%
+  group_by(soil_respiration_category) %>%
+  summarise(count = n())
+print(summary_table_fine_soil_respiration22)
+
+################################################################################
+#Filtering now for 2023#########################################################
+#This next data will be for coarse data ########################################
+
+filtered_data_2023_Coarse <- filtered_data_2023 %>%
+  filter(USDA_texture %in% c("Sandy Loam", "Sand", "Loamy Sand"))
+
+#Coarse OM 2023
+summary_table_coarse_OM23 <- filtered_data_2023_Coarse %>%
+  mutate(OM = cut(OM, breaks = c(-Inf, 2, 3, 4, Inf),
+                  labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                  include.lowest = TRUE)) %>%
+  group_by(OM) %>%
+  summarise(count = n())
+print(summary_table_coarse_OM23)
+#Coarse POM 2023
+summary_table_coarse_POM23 <- filtered_data_2023_Coarse %>%
+  mutate(POM = cut(POM, breaks = c(-Inf, 1, 1.4, 2, Inf),
+                   labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                   include.lowest = TRUE)) %>%
+  group_by(POM) %>%
+  summarise(count = n())
+print(summary_table_coarse_POM23)
+#Coarse pH 2023
+summary_table_coarse_pH23 <- filtered_data_2023_Coarse %>%
+  mutate(pH_category = cut(pH, breaks = c(-Inf, 5, 5.4, 5.9, 7, 7.5, 8, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor" ),
+                           include.lowest = TRUE)) %>%
+  group_by(pH_category) %>%
+  summarise(count = n())
+print(summary_table_coarse_pH23)
+#Coarse EC 2023
+summary_table_coarse_EC23 <- filtered_data_2023_Coarse %>%
+  mutate(EC_category = cut(EC, breaks = c(-Inf, 50, 99, 290, 1000, 1500, 2000, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                           include.lowest = TRUE)) %>%
+  group_by(EC_category) %>%
+  summarise(count = n())
+print(summary_table_coarse_EC23)
+#Coarse ksat_10 2023
+summary_table_coarse_ksat_1023 <- filtered_data_2023_Coarse %>%
+  mutate(ksat_10 = cut(ksat_10, breaks = c(-Inf, 2.4, 15, 36, 72, 108, 144, Inf),
+                       labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                       include.lowest = TRUE)) %>%
+  group_by(ksat_10) %>%
+  summarise(count = n())
+print(summary_table_coarse_ksat_1023)
+#Coarse bulk density 2023
+summary_table_coarse_bulk_density23 <- filtered_data_2023_Coarse %>%
+  mutate(bulk_density_category = cut(bulk_density, breaks = c(-Inf, 1.4, 1.5, 1.6, Inf),
+                                     labels = c("Optimal", "Sub optimal", "Declining", "Poor"),
+                                     include.lowest = TRUE)) %>%
+  group_by(bulk_density_category) %>%
+  summarise(count = n())
+print((summary_table_coarse_bulk_density23))
+#Coarse soil respiration 2023
+summary_table_coarse_soil_respiration23 <- filtered_data_2023_Coarse %>%
+  mutate(soil_respiration_category = cut(soil_respiration, breaks = c(-Inf, 0.5, 0.74, 1, Inf),
+                                         labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                                         include.lowest = TRUE)) %>%
+  group_by(soil_respiration_category) %>%
+  summarise(count = n())
+print(summary_table_coarse_soil_respiration23)
+
+###############################################################################
+#Filtering now for medium soil ################################################
+#This is still 2023 data#######################################################
+
+filtered_data_2023_Medium <- filtered_data_2023 %>%
+  filter(USDA_texture %in% c("Sandy Clay Loam", "Loam, Silt Loam", "Silt"))
+View(filtered_data_2023_Medium)
+#Medium OM 2023
+summary_table_medium_OM23 <- filtered_data_2023_Medium %>%
+  mutate(OM = cut(OM, breaks = c(-Inf, 2, 3, 4, Inf),
+                  labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                  include.lowest = TRUE)) %>%
+  group_by(OM) %>%
+  summarise(count = n())
+print(summary_table_medium_OM23)
+#Medium POM 2023
+summary_table_medium_POM23 <- filtered_data_2023_Medium %>%
+  mutate(POM = cut(POM, breaks = c(-Inf, 1, 1.4, 2, Inf),
+                   labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                   include.lowest = TRUE)) %>%
+  group_by(POM) %>%
+  summarise(count = n())
+print(summary_table_medium_POM23)
+#Medium pH 2023
+summary_table_medium_pH23 <- filtered_data_2023_Medium %>%
+  mutate(pH_category = cut(pH, breaks = c(-Inf, 5, 5.4, 5.9, 7, 7.5, 8, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor" ),
+                           include.lowest = TRUE)) %>%
+  group_by(pH_category) %>%
+  summarise(count = n())
+print(summary_table_medium_pH23)
+#Medium EC 2023
+summary_table_medium_EC23 <- filtered_data_2023_Medium %>%
+  mutate(EC_category = cut(EC, breaks = c(-Inf, 50, 99, 290, 1000, 1500, 2000, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                           include.lowest = TRUE)) %>%
+  group_by(EC_category) %>%
+  summarise(count = n())
+print(summary_table_medium_EC23)
+#Medium ksat_10 2023
+summary_table_medium_ksat_1023 <- filtered_data_2023_Medium %>%
+  mutate(ksat_10 = cut(ksat_10, breaks = c(-Inf, 2.4, 15, 36, 72, 108, 144, Inf),
+                       labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                       include.lowest = TRUE)) %>%
+  group_by(ksat_10) %>%
+  summarise(count = n())
+print(summary_table_medium_ksat_1023)
+#Medium bulk density 2023
+summary_table_medium_bulk_density23 <- filtered_data_2023_Medium %>%
+  mutate(bulk_density_category = cut(bulk_density, breaks = c(-Inf, 1.4, 1.5, 1.6, Inf),
+                                     labels = c("Optimal", "Sub optimal", "Declining", "Poor"),
+                                     include.lowest = TRUE)) %>%
+  group_by(bulk_density_category) %>%
+  summarise(count = n())
+print((summary_table_medium_bulk_density23))
+#Medium soil respiration 2023
+summary_table_medium_soil_respiration23 <- filtered_data_2023_Medium %>%
+  mutate(soil_respiration_category = cut(soil_respiration, breaks = c(-Inf, 0.5, 0.74, 1, Inf),
+                                         labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                                         include.lowest = TRUE)) %>%
+  group_by(soil_respiration_category) %>%
+  summarise(count = n())
+print(summary_table_medium_soil_respiration23)
+
+################################################################################
+#This is now fine soil  ########################################################
+#Still from 2023################################################################
+# Filtered data for 2023 with fine texture
+
+filtered_data_2023_fine <- filtered_data_2023 %>%
+  filter(USDA_texture %in% c("Sandy Clay", "Clay Loam", "Silty Clay Loam", "Clay", "Silty Clay"))
+View(filtered_data_2023_fine)
+# Fine OM 2023
+summary_table_fine_OM23 <- filtered_data_2023_fine %>%
+  mutate(OM = cut(OM, breaks = c(-Inf, 2, 3, 4, Inf),
+                  labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                  include.lowest = TRUE)) %>%
+  group_by(OM) %>%
+  summarise(count = n())
+print(summary_table_fine_OM23)
+# Fine POM 2023
+summary_table_fine_POM23 <- filtered_data_2023_fine %>%
+  mutate(POM = cut(POM, breaks = c(-Inf, 1, 1.4, 2, Inf),
+                   labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                   include.lowest = TRUE)) %>%
+  group_by(POM) %>%
+  summarise(count = n())
+print(summary_table_fine_POM23)
+# Fine pH 2023
+summary_table_fine_pH23 <- filtered_data_2023_fine %>%
+  mutate(pH_category = cut(pH, breaks = c(-Inf, 5, 5.4, 5.9, 7, 7.5, 8, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor" ),
+                           include.lowest = TRUE)) %>%
+  group_by(pH_category) %>%
+  summarise(count = n())
+print(summary_table_fine_pH23)
+# Fine EC 2023
+summary_table_fine_EC23 <- filtered_data_2023_fine %>%
+  mutate(EC_category = cut(EC, breaks = c(-Inf, 50, 99, 290, 1000, 1500, 2000, Inf),
+                           labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                           include.lowest = TRUE)) %>%
+  group_by(EC_category) %>%
+  summarise(count = n())
+print(summary_table_fine_EC23)
+# Fine ksat_10 2023
+summary_table_fine_ksat_1023 <- filtered_data_2023_fine %>%
+  mutate(ksat_10 = cut(ksat_10, breaks = c(-Inf, 2.4, 15, 36, 72, 108, 144, Inf),
+                       labels = c("Poor", "Declining", "Sub optimal", "Optimal", "Sub optimal", "Declining", "Poor"),
+                       include.lowest = TRUE)) %>%
+  group_by(ksat_10) %>%
+  summarise(count = n())
+print(summary_table_fine_ksat_1023)
+# Fine bulk density 2023
+summary_table_fine_bulk_density23 <- filtered_data_2023_fine %>%
+  mutate(bulk_density_category = cut(bulk_density, breaks = c(-Inf, 1.4, 1.5, 1.6, Inf),
+                                     labels = c("Optimal", "Sub optimal", "Declining", "Poor"),
+                                     include.lowest = TRUE)) %>%
+  group_by(bulk_density_category) %>%
+  summarise(count = n())
+print((summary_table_fine_bulk_density23))
+# Fine soil respiration 2023
+summary_table_fine_soil_respiration23 <- filtered_data_2023_fine %>%
+  mutate(soil_respiration_category = cut(soil_respiration, breaks = c(-Inf, 0.5, 0.74, 1, Inf),
+                                         labels = c("Poor", "Declining", "Sub optimal", "Optimal"),
+                                         include.lowest = TRUE)) %>%
+  group_by(soil_respiration_category) %>%
+  summarise(count = n())
+print(summary_table_fine_soil_respiration23)
+
+
+
+#compliation of the tables
+#2022 data printable
+#Coarse
+print(summary_table_coarse_OM22)
+print(summary_table_coarse_POM22)
+print(summary_table_coarse_pH22)
+print(summary_table_coarse_EC22)
+print(summary_table_coarse_ksat_1022)
+print((summary_table_coarse_bulk_density22))
+print(summary_table_coarse_soil_respiration22)
+#Medium 
+print(summary_table_medium_OM22)
+print(summary_table_medium_POM22)
+print(summary_table_medium_pH22)
+print(summary_table_medium_EC22)
+print(summary_table_medium_ksat_1022)
+print((summary_table_medium_bulk_density22))
+print(summary_table_medium_soil_respiration22)
+#Fine 
+print(summary_table_fine_OM22)
+print(summary_table_fine_POM22)
+print(summary_table_fine_pH22)
+print(summary_table_fine_EC22)
+print(summary_table_fine_ksat_1022)
+print((summary_table_fine_bulk_density22))
+print(summary_table_fine_soil_respiration22)
+
+#2023 data printable 
+#Coarse 
+print(summary_table_coarse_OM23)
+print(summary_table_coarse_POM23)
+print(summary_table_coarse_pH23)
+print(summary_table_coarse_EC23)
+print(summary_table_coarse_ksat_1023)
+print((summary_table_coarse_bulk_density23))
+print(summary_table_coarse_soil_respiration23)
+#Medium 
+print(summary_table_medium_OM23)
+print(summary_table_medium_POM23)
+print(summary_table_medium_pH23)
+print(summary_table_medium_EC23)
+print(summary_table_medium_ksat_1023)
+print((summary_table_medium_bulk_density23))
+print(summary_table_medium_soil_respiration23)
+#fine 
+print(summary_table_fine_OM23)
+print(summary_table_fine_POM23)
+print(summary_table_fine_pH23)
+print(summary_table_fine_EC23)
+print(summary_table_fine_ksat_1023)
+print((summary_table_fine_bulk_density23))
+print(summary_table_fine_soil_respiration23)
+
+
+
+###Going to try and combine some of the stats######
+Coarse_2023 <- data.frame(
+  Category = c("Poor", "Declining", "Sub optimal", "Optimal"),
+  OM = summary_table_coarse_OM23[c(2)],
+  POP = summary_table_coarse_POM23[c(2)],
+  pH_category = summary_table_coarse_pH23[c(2)], 
+  EC_category = summary_table_coarse_EC23[c(2)], 
+  ksat_10 = summary_table_coarse_ksat_1023[-c(5), c(2)], 
+  bulk_density_category = summary_table_coarse_bulk_density23[-c(5), c(2)], 
+  soil_respiration_category = summary_table_coarse_soil_respiration23[c(2)]
+)
+Coarse_2023 <- rename(Coarse_2023,
+                      category = 1,
+                      OM = 2,
+                      POM = 3,
+                      pH = 4,
+                      EC = 5,
+                      ksat = 6,
+                      bulkden = 7,
+                      soil_resp = 8)
+View(Coarse_2023)
+
+
+
+
+
