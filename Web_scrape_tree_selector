@@ -1,0 +1,86 @@
+#gonna try and web scrape (first times the charm?)
+#originally needed to pull specific data from a website to put into an excel sheet
+library(httr)
+library(rvest)
+
+first_url <- "https://www.greeningcanadianlandscape.ca/tree-species-selector/eastern-canada-tree-species#"
+first_response <- httr::GET(first_url)
+first_page_html <- read_html(content(first_response, "text"))
+
+# Extract URLs of secondary sites for the GROWTH
+secondary_urls <- first_page_html %>%
+  html_nodes("a[href^='/tree-species-calculator/tree-species-calculator-list/']") %>%
+  html_attr("href") %>%
+  paste("https://www.greeningcanadianlandscape.ca", ., sep = "")
+for (url in secondary_urls) {
+  secondary_response <- httr::GET(url)
+  secondary_page_html <- read_html(content(secondary_response, "text"))
+  growth <- secondary_page_html %>% 
+    html_nodes("#jumpLinkHere > div > div > div > div > div.specs.col-md-6.col-sm-12.col-xs-12 > div.treeCharacter > p:nth-child(9)") %>% 
+    html_text() %>%
+    trimws() 
+  print(growth)
+}
+
+#Extract for Native to Ontario
+#Below is the selector (including the #)
+#jumpLinkHere > div > div > div > div > div.specs.col-md-6.col-sm-12.col-xs-12 > div.plantSite > p:nth-child(5)
+for (url in secondary_urls) {
+  secondary_response <- httr::GET(url)
+  secondary_page_html <- read_html(content(secondary_response, "text"))
+  native_o <- secondary_page_html %>% 
+    html_nodes("#jumpLinkHere > div > div > div > div > div.specs.col-md-6.col-sm-12.col-xs-12 > div.plantSite > p:nth-child(5)") %>% 
+    html_text() %>%
+    trimws() 
+  print(native_o)
+}
+
+#Extract for Native to North America 
+#Below is the selector (including the #)
+#jumpLinkHere > div > div > div > div > div.specs.col-md-6.col-sm-12.col-xs-12 > div.plantSite > p:nth-child(7)
+for (url in secondary_urls) {
+  secondary_response <- httr::GET(url)
+  secondary_page_html <- read_html(content(secondary_response, "text"))
+  native_na <- secondary_page_html %>% 
+    html_nodes("#jumpLinkHere > div > div > div > div > div.specs.col-md-6.col-sm-12.col-xs-12 > div.plantSite > p:nth-child(7)") %>% 
+    html_text() %>%
+    trimws() 
+  print(native_na)
+}
+
+#Extract for Insect and Diseases 
+#Below is the selector (with the #)
+#jumpLinkHere > div > div > div > div > div.right.col-md-6.col-sm-12.col-xs-12 > div.insAndDes > p
+for (url in secondary_urls) {
+  secondary_response <- httr::GET(url)
+  secondary_page_html <- read_html(content(secondary_response, "text"))
+  insect_diseases <- secondary_page_html %>% 
+    html_nodes("#jumpLinkHere > div > div > div > div > div.right.col-md-6.col-sm-12.col-xs-12 > div.insAndDes > p") %>% 
+    html_text() %>%
+    trimws() 
+  print(insect_diseases)
+}
+
+#Extraction for managment notes 
+#Below is the selector (# included)
+#jumpLinkHere > div > div > div > div > div.right.col-md-6.col-sm-12.col-xs-12 > div.manageNotes > p
+for (url in secondary_urls) {
+  secondary_response <- httr::GET(url)
+  secondary_page_html <- read_html(content(secondary_response, "text"))
+  management <- secondary_page_html %>% 
+    html_nodes("#jumpLinkHere > div > div > div > div > div.right.col-md-6.col-sm-12.col-xs-12 > div.manageNotes > p") %>% 
+    html_text() %>%
+    trimws() 
+  print(management)
+}
+##Some of the values above returned as character(0)
+##Substitute values can be found using the code below 
+for (url in secondary_urls) {
+  secondary_response <- httr::GET(url)
+  secondary_page_html <- read_html(content(secondary_response, "text"))
+  management_backup <- secondary_page_html %>% 
+    html_nodes("#jumpLinkHere > div > div > div > div > div.right.col-md-6.col-sm-12.col-xs-12 > div.manageNotes > ul") %>% 
+    html_text() %>%
+    trimws() 
+  print(management_backup)
+}
