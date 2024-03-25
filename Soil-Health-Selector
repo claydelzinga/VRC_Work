@@ -1,0 +1,120 @@
+#making a website tree selector for the Soil Health
+ui <- fluidPage(
+  titlePanel("Soil Quality Calculator"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("texture_class", "Texture Class",
+                  choices = c("Coarse", "Medium", "Fine"),
+                  selected = "Medium"),
+      numericInput("organic_matter", "Organic Matter (%)", value = 3.5, min = 0, max = 100),
+      sliderInput("pH", "pH", value = 6.5, min = 0, max = 14, step = 0.1),
+      numericInput("soil_respiration", "Soil Respiration", value = 0.8, min = 0, max = 4, step = 0.1),
+      numericInput("electrical_conductivity", "Electrical Conductivity", value = 0.5, min = 0, max = 1000, step = 0.1),
+      actionButton("classifyBtn", "Classify")
+    ),
+    mainPanel(
+      h3(textOutput("overall_health")),
+      tableOutput("classification")
+    )
+  )
+)
+
+# Define server logic
+server <- function(input, output) {
+  char1_class <- reactiveVal()
+  char2_class <- reactiveVal()
+  char3_class <- reactiveVal()
+  char4_class <- reactiveVal()
+  observeEvent(input$classifyBtn, {
+    texture_class <- input$texture_class
+    # Define thresholds for organic matter based on texture class
+    if (texture_class == "Coarse") {
+      if (input$organic_matter >= 4) {
+        char1_class("Optimal")
+      } else if (input$organic_matter >= 3) {
+        char1_class("Suboptimal")
+      } else if (input$organic_matter >= 2) {
+        char1_class("Declining")
+      } else {
+        char1_class("Poor")
+      }
+    } else if (texture_class == "Medium") {
+      if (input$organic_matter >= 6) {
+        char1_class("Optimal")
+      } else if (input$organic_matter >= 4.5) {
+        char1_class("Suboptimal")
+      } else if (input$organic_matter >= 3) {
+        char1_class("Declining")
+      } else {
+        char1_class("Poor")
+      }
+    } else if (texture_class == "Fine") {
+      if (input$organic_matter >= 8) {
+        char1_class("Optimal")
+      } else if (input$organic_matter >= 6) {
+        char1_class("Suboptimal")
+      } else if (input$organic_matter >= 4) {
+        char1_class("Declining")
+      } else {
+        char1_class("Poor")
+      }
+    }
+    # pH thresholds
+    if (input$pH >= 6 && input$pH <= 7.0) {
+      char2_class("Optimal")
+    } else if ((input$pH >= 5.99 && input$pH < 5.5) || (input$pH > 7.0 && input$pH <= 7.5)) {
+      char2_class("Suboptimal")
+    } else if ((input$pH >= 5 && input$pH < 5.49) || (input$pH > 7.5 && input$pH <= 8.0)) {
+      char2_class("Declining")
+    } else {
+      char2_class("Poor")
+    }
+    # Soil Respiration thresholds
+    if (input$soil_respiration >= 1) {
+      char3_class("Optimal")
+    } else if (input$soil_respiration >= 0.75 && input$soil_respiration < 1) {
+      char3_class("Suboptimal")
+    } else if (input$soil_respiration >= 0.5 && input$soil_respiration < 0.75) {
+      char3_class("Declining")
+    } else {
+      char3_class("Poor")
+    }
+    # EC thresholds
+    if (input$electrical_conductivity >= 300 && input$electrical_conductivity <= 1000) {
+      char4_class("Optimal")
+    } else if ((input$electrical_conductivity >= 200 && input$electrical_conductivity < 300) || 
+               (input$electrical_conductivity >= 1001 && input$electrical_conductivity < 1500)){
+      char4_class("Suboptimal")
+    } else if ((input$electrical_conductivity >= 100 && input$electrical_conductivity < 200) || 
+               (input$electrical_conductivity >= 1501 && input$electrical_conductivity < 2000)) {
+      char4_class("Declining")
+    } else {
+      char4_class("Poor")
+    }
+  })
+  observeEvent(input$classifyBtn, {
+    # Return the results in a table
+    output$classification <- renderTable({
+      data.frame(
+        Characteristic = c("Organic Matter", "pH", "Soil Respiration", "Electrical Conductivity"),
+        Classification = c(char1_class(), char2_class(), char3_class(), char4_class())
+      )
+    })
+  })
+  output$overall_health <- renderText({
+    # Calculate overall soil health
+    overall_health <- mean(c(as.numeric(char1_class() == "Optimal"), 
+                             as.numeric(char2_class() == "Optimal"), 
+                             as.numeric(char3_class() == "Optimal"), 
+                             as.numeric(char4_class() == "Optimal")))
+    
+    overall_health_class <- ifelse(overall_health >= 0.75, "Optimal",
+                                   ifelse(overall_health >= 0.5, "Suboptimal",
+                                          ifelse(overall_health >= 0.25, "Declining", "Poor")))
+    
+    paste("Overall Soil Health:", overall_health_class)
+  })
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
